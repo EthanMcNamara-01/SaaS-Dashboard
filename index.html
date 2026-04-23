@@ -1,0 +1,1047 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SaaS Metrics Terminal</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600;9..144,700&family=JetBrains+Mono:wght@300;400;500;600&family=Inter+Tight:wght@300;400;500;600&display=swap');
+
+  :root {
+    --bg: #0a0b0d;
+    --bg-elev: #101216;
+    --bg-hover: #16191f;
+    --border: #1e2228;
+    --border-bright: #2a2f37;
+    --text: #e8e9ec;
+    --text-dim: #8b919e;
+    --text-mute: #565c67;
+    --accent: #d4ff4a;
+    --accent-dim: #a3c73a;
+    --green: #4ade80;
+    --amber: #fbbf24;
+    --red: #f87171;
+    --grid: #15181d;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter Tight', system-ui, sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      radial-gradient(circle at 20% 10%, rgba(212, 255, 74, 0.04) 0%, transparent 40%),
+      radial-gradient(circle at 85% 90%, rgba(212, 255, 74, 0.02) 0%, transparent 50%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    max-width: 1440px;
+    margin: 0 auto;
+    padding: 24px 32px 64px;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* HEADER */
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 0 24px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 32px;
+  }
+
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .brand-mark {
+    width: 32px; height: 32px;
+    background: var(--accent);
+    display: grid; place-items: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 600; font-size: 14px;
+    color: var(--bg);
+    border-radius: 2px;
+  }
+
+  .brand-text h1 {
+    font-family: 'Fraunces', serif;
+    font-weight: 400;
+    font-size: 20px;
+    letter-spacing: -0.01em;
+    line-height: 1;
+  }
+
+  .brand-text .sub {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--text-mute);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-top: 4px;
+  }
+
+  .status {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--text-dim);
+    letter-spacing: 0.05em;
+  }
+
+  .pulse {
+    width: 6px; height: 6px;
+    background: var(--green);
+    border-radius: 50%;
+    box-shadow: 0 0 0 0 var(--green);
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.5); }
+    70% { box-shadow: 0 0 0 6px rgba(74, 222, 128, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(74, 222, 128, 0); }
+  }
+
+  /* LAYOUT */
+  .grid {
+    display: grid;
+    grid-template-columns: 340px 1fr;
+    gap: 24px;
+  }
+
+  @media (max-width: 1024px) {
+    .grid { grid-template-columns: 1fr; }
+  }
+
+  /* INPUT PANEL */
+  .inputs {
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 24px;
+    height: fit-content;
+    position: sticky;
+    top: 24px;
+  }
+
+  .section-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--text-mute);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .section-label::before {
+    content: '';
+    width: 12px; height: 1px;
+    background: var(--accent);
+  }
+
+  .input-group {
+    margin-bottom: 18px;
+  }
+
+  .input-group:last-child { margin-bottom: 0; }
+
+  .input-group label {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    font-size: 12px;
+    color: var(--text-dim);
+    margin-bottom: 6px;
+  }
+
+  .input-group label .hint {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--text-mute);
+  }
+
+  .input-wrap {
+    position: relative;
+  }
+
+  .input-wrap .prefix,
+  .input-wrap .suffix {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--text-mute);
+    pointer-events: none;
+  }
+
+  .input-wrap .prefix { left: 10px; }
+  .input-wrap .suffix { right: 10px; }
+
+  .input-wrap input {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    padding: 10px 12px;
+    border-radius: 4px;
+    transition: border-color 0.15s, background 0.15s;
+    outline: none;
+  }
+
+  .input-wrap.has-prefix input { padding-left: 24px; }
+  .input-wrap.has-suffix input { padding-right: 28px; }
+
+  .input-wrap input:focus {
+    border-color: var(--accent);
+    background: var(--bg-hover);
+  }
+
+  .input-wrap input:hover { border-color: var(--border-bright); }
+
+  /* Remove spinners */
+  input[type=number]::-webkit-inner-spin-button,
+  input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+  input[type=number] { -moz-appearance: textfield; }
+
+  /* MAIN CONTENT */
+  .main {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  /* HERO ROW - big numbers */
+  .hero {
+    display: grid;
+    grid-template-columns: 1.3fr 1fr 1fr;
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    overflow: hidden;
+  }
+
+  @media (max-width: 768px) {
+    .hero { grid-template-columns: 1fr; }
+  }
+
+  .hero-cell {
+    background: var(--bg-elev);
+    padding: 24px 28px;
+    position: relative;
+  }
+
+  .hero-cell .tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--text-mute);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+
+  .hero-cell .value {
+    font-family: 'Fraunces', serif;
+    font-weight: 300;
+    font-size: 44px;
+    line-height: 1;
+    letter-spacing: -0.03em;
+    color: var(--text);
+    font-feature-settings: 'tnum' 1;
+  }
+
+  .hero-cell.primary .value {
+    font-size: 56px;
+    color: var(--accent);
+  }
+
+  .hero-cell .unit {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    color: var(--text-dim);
+    margin-left: 4px;
+    font-weight: 400;
+  }
+
+  .hero-cell .meta {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--text-dim);
+    margin-top: 10px;
+  }
+
+  /* METRIC CARDS */
+  .metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+  }
+
+  @media (max-width: 900px) {
+    .metrics-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  .metric {
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 18px;
+    transition: border-color 0.2s;
+  }
+
+  .metric:hover { border-color: var(--border-bright); }
+
+  .metric .label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--text-mute);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .metric .value {
+    font-family: 'Fraunces', serif;
+    font-weight: 400;
+    font-size: 28px;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    font-feature-settings: 'tnum' 1;
+  }
+
+  .metric .footnote {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--text-mute);
+    margin-top: 8px;
+    line-height: 1.5;
+  }
+
+  .badge {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    padding: 2px 6px;
+    border-radius: 2px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    font-weight: 500;
+  }
+
+  .badge.good { background: rgba(74, 222, 128, 0.12); color: var(--green); }
+  .badge.warn { background: rgba(251, 191, 36, 0.12); color: var(--amber); }
+  .badge.bad  { background: rgba(248, 113, 113, 0.12); color: var(--red); }
+
+  /* CHARTS ROW */
+  .charts {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+
+  @media (max-width: 900px) {
+    .charts { grid-template-columns: 1fr; }
+  }
+
+  .chart-card {
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 20px;
+  }
+
+  .chart-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 20px;
+  }
+
+  .chart-title {
+    font-family: 'Fraunces', serif;
+    font-size: 16px;
+    font-weight: 400;
+    letter-spacing: -0.01em;
+  }
+
+  .chart-sub {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--text-mute);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .chart-svg { width: 100%; height: 220px; display: block; }
+
+  /* RULE OF 40 GAUGE */
+  .rule-card {
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 24px;
+  }
+
+  .rule-wrap {
+    display: grid;
+    grid-template-columns: 1fr 280px;
+    gap: 32px;
+    align-items: center;
+  }
+
+  @media (max-width: 768px) {
+    .rule-wrap { grid-template-columns: 1fr; }
+  }
+
+  .rule-breakdown {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .rule-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .rule-row:last-child { border-bottom: none; }
+
+  .rule-row .k {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--text-dim);
+    letter-spacing: 0.05em;
+  }
+
+  .rule-row .v {
+    font-family: 'Fraunces', serif;
+    font-size: 18px;
+    font-feature-settings: 'tnum' 1;
+  }
+
+  /* FOOTER */
+  footer {
+    margin-top: 48px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--text-mute);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  /* Number transitions */
+  .value, .v { transition: color 0.3s; }
+
+  .flash {
+    animation: flash 0.5s ease;
+  }
+
+  @keyframes flash {
+    0% { color: var(--accent); }
+    100% { color: inherit; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <header>
+    <div class="brand">
+      <div class="brand-mark">S</div>
+      <div class="brand-text">
+        <h1>Stratum<span style="color:var(--accent)">.</span></h1>
+        <div class="sub">SaaS Metrics Terminal / v1.0</div>
+      </div>
+    </div>
+    <div class="status">
+      <span class="pulse"></span>
+      <span id="clock">LIVE</span>
+    </div>
+  </header>
+
+  <div class="grid">
+
+    <!-- INPUT PANEL -->
+    <aside class="inputs">
+      <div class="section-label">Inputs / Assumptions</div>
+
+      <div class="input-group">
+        <label>Monthly Recurring Revenue <span class="hint">MRR</span></label>
+        <div class="input-wrap has-prefix">
+          <span class="prefix">$</span>
+          <input type="number" id="mrr" value="250000" min="0" step="1000">
+        </div>
+      </div>
+
+      <div class="input-group">
+        <label>Customer Count <span class="hint">total</span></label>
+        <div class="input-wrap">
+          <input type="number" id="customers" value="1200" min="1" step="1">
+        </div>
+      </div>
+
+      <div class="input-group">
+        <label>Monthly Churn Rate <span class="hint">%</span></label>
+        <div class="input-wrap has-suffix">
+          <input type="number" id="churn" value="3.5" min="0" max="100" step="0.1">
+          <span class="suffix">%</span>
+        </div>
+      </div>
+
+      <div class="input-group">
+        <label>ARPU <span class="hint">per month</span></label>
+        <div class="input-wrap has-prefix">
+          <span class="prefix">$</span>
+          <input type="number" id="arpu" value="210" min="0" step="1">
+        </div>
+      </div>
+
+      <div class="input-group">
+        <label>New Customers <span class="hint">monthly</span></label>
+        <div class="input-wrap">
+          <input type="number" id="newCust" value="85" min="0" step="1">
+        </div>
+      </div>
+
+      <div class="input-group">
+        <label>COGS <span class="hint">% of revenue</span></label>
+        <div class="input-wrap has-suffix">
+          <input type="number" id="cogs" value="25" min="0" max="100" step="1">
+          <span class="suffix">%</span>
+        </div>
+      </div>
+
+      <div class="input-group">
+        <label>Operating Expenses <span class="hint">monthly</span></label>
+        <div class="input-wrap has-prefix">
+          <span class="prefix">$</span>
+          <input type="number" id="opex" value="180000" min="0" step="1000">
+        </div>
+      </div>
+
+      <div class="input-group">
+        <label>Cash on Hand <span class="hint">runway calc</span></label>
+        <div class="input-wrap has-prefix">
+          <span class="prefix">$</span>
+          <input type="number" id="cash" value="2400000" min="0" step="10000">
+        </div>
+      </div>
+    </aside>
+
+    <!-- MAIN -->
+    <main class="main">
+
+      <!-- HERO: ARR + key headline stats -->
+      <div class="hero">
+        <div class="hero-cell primary">
+          <div class="tag">Annual Recurring Revenue</div>
+          <div><span class="value" id="arr">$3.00M</span></div>
+          <div class="meta" id="arrMeta">From $250,000 MRR</div>
+        </div>
+        <div class="hero-cell">
+          <div class="tag">Net Revenue Retention</div>
+          <div><span class="value" id="nrr">96.5%</span></div>
+          <div class="meta" id="nrrMeta">Gross retention basis</div>
+        </div>
+        <div class="hero-cell">
+          <div class="tag">Rule of 40</div>
+          <div><span class="value" id="rule40">42.1</span></div>
+          <div class="meta" id="rule40Meta">Growth + FCF margin</div>
+        </div>
+      </div>
+
+      <!-- METRIC CARDS -->
+      <div class="metrics-grid">
+        <div class="metric">
+          <div class="label">LTV <span class="badge good" id="ltvBadge">simplified</span></div>
+          <div class="value" id="ltv">$6,000</div>
+          <div class="footnote">ARPU × gross margin ÷ churn</div>
+        </div>
+        <div class="metric">
+          <div class="label">Monthly Burn <span class="badge" id="burnBadge">cash</span></div>
+          <div class="value" id="burn">$-12,500</div>
+          <div class="footnote">Gross profit − OpEx</div>
+        </div>
+        <div class="metric">
+          <div class="label">Runway <span class="badge" id="runwayBadge">months</span></div>
+          <div class="value" id="runway">∞</div>
+          <div class="footnote" id="runwayFoot">At current burn rate</div>
+        </div>
+        <div class="metric">
+          <div class="label">Break-even <span class="badge" id="beBadge">months</span></div>
+          <div class="value" id="breakeven">14</div>
+          <div class="footnote" id="beFoot">At current growth pace</div>
+        </div>
+      </div>
+
+      <!-- CHARTS -->
+      <div class="charts">
+        <div class="chart-card">
+          <div class="chart-header">
+            <div class="chart-title">MRR Projection</div>
+            <div class="chart-sub">12 months</div>
+          </div>
+          <svg class="chart-svg" id="mrrChart" viewBox="0 0 600 220" preserveAspectRatio="none"></svg>
+        </div>
+        <div class="chart-card">
+          <div class="chart-header">
+            <div class="chart-title">Cash Runway</div>
+            <div class="chart-sub">monthly balance</div>
+          </div>
+          <svg class="chart-svg" id="cashChart" viewBox="0 0 600 220" preserveAspectRatio="none"></svg>
+        </div>
+      </div>
+
+      <!-- RULE OF 40 DETAIL -->
+      <div class="rule-card">
+        <div class="chart-header">
+          <div class="chart-title">Rule of 40 — Breakdown</div>
+          <div class="chart-sub" id="rule40Verdict">Passing</div>
+        </div>
+        <div class="rule-wrap">
+          <div class="rule-breakdown">
+            <div class="rule-row">
+              <span class="k">Implied Growth Rate (annualized)</span>
+              <span class="v" id="growthRate">+28.1%</span>
+            </div>
+            <div class="rule-row">
+              <span class="k">FCF Margin (proxy)</span>
+              <span class="v" id="fcfMargin">+14.0%</span>
+            </div>
+            <div class="rule-row">
+              <span class="k">Combined Score</span>
+              <span class="v" id="combined" style="color:var(--accent)">42.1</span>
+            </div>
+            <div class="rule-row">
+              <span class="k">Benchmark Threshold</span>
+              <span class="v" style="color:var(--text-dim)">40.0</span>
+            </div>
+          </div>
+          <svg viewBox="0 0 280 200" id="gauge" style="width:100%"></svg>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <footer>
+    <span>Stratum Terminal / Self-contained build</span>
+    <span id="calcNote">All calculations client-side</span>
+  </footer>
+</div>
+
+<script>
+(function() {
+  'use strict';
+
+  const ids = ['mrr','customers','churn','arpu','newCust','cogs','opex','cash'];
+  const state = {};
+
+  function readInputs() {
+    ids.forEach(id => {
+      const el = document.getElementById(id);
+      let v = parseFloat(el.value);
+      if (isNaN(v)) v = 0;
+      state[id] = v;
+    });
+  }
+
+  // Formatting helpers
+  function fmtMoney(n) {
+    if (!isFinite(n)) return '—';
+    const abs = Math.abs(n);
+    const sign = n < 0 ? '-' : '';
+    if (abs >= 1_000_000) return sign + '$' + (abs/1_000_000).toFixed(2) + 'M';
+    if (abs >= 1_000) return sign + '$' + (abs/1_000).toFixed(0) + 'K';
+    return sign + '$' + Math.round(abs).toLocaleString();
+  }
+  function fmtMoneyFull(n) {
+    if (!isFinite(n)) return '—';
+    return (n<0?'-':'') + '$' + Math.round(Math.abs(n)).toLocaleString();
+  }
+  function fmtPct(n, digits=1) {
+    if (!isFinite(n)) return '—';
+    return (n>=0?'+':'') + n.toFixed(digits) + '%';
+  }
+  function fmtNum(n, digits=1) {
+    if (!isFinite(n)) return '—';
+    return n.toFixed(digits);
+  }
+
+  function calculate() {
+    readInputs();
+    const m = state;
+
+    // Core derived
+    const arr = m.mrr * 12;
+    const grossMargin = 1 - (m.cogs / 100);
+    const grossProfit = m.mrr * grossMargin;
+    const netBurn = grossProfit - m.opex; // positive = profitable
+    const churnDec = m.churn / 100;
+
+    // NRR (simplified - gross retention only, no expansion modeled)
+    // Revenue retained = 1 - churn, expressed as a percentage
+    const nrr = (1 - churnDec) * 100;
+
+    // LTV simplified: (ARPU * gross margin) / monthly churn
+    const ltv = churnDec > 0 ? (m.arpu * grossMargin) / churnDec : Infinity;
+
+    // Runway: cash / monthly burn (only if burning)
+    let runway;
+    if (netBurn >= 0) runway = Infinity;
+    else runway = m.cash / Math.abs(netBurn);
+
+    // Months to break-even:
+    // Each month, net new customers ≈ newCust - (customers * churn)
+    // MRR grows by netNew * ARPU. Break-even when gross profit >= opex.
+    const netNewCust = m.newCust - (m.customers * churnDec);
+    const targetMRR = m.opex / grossMargin; // MRR needed to cover opex
+
+    let breakeven;
+    if (netBurn >= 0) {
+      breakeven = 0; // already profitable
+    } else if (netNewCust <= 0) {
+      breakeven = Infinity; // shrinking, never breaks even
+    } else {
+      const mrrGapNeeded = targetMRR - m.mrr;
+      const monthlyMRRGrowth = netNewCust * m.arpu;
+      breakeven = mrrGapNeeded / monthlyMRRGrowth;
+    }
+
+    // Implied annualized growth rate (from net new customer velocity)
+    const monthlyGrowthPct = m.customers > 0 ? (netNewCust / m.customers) : 0;
+    const annualizedGrowth = (Math.pow(1 + monthlyGrowthPct, 12) - 1) * 100;
+
+    // FCF margin proxy = netBurn / MRR * 100
+    const fcfMargin = m.mrr > 0 ? (netBurn / m.mrr) * 100 : 0;
+
+    // Rule of 40
+    const rule40 = annualizedGrowth + fcfMargin;
+
+    return {
+      arr, grossMargin, grossProfit, netBurn, nrr, ltv, runway, breakeven,
+      netNewCust, annualizedGrowth, fcfMargin, rule40, targetMRR, churnDec
+    };
+  }
+
+  function setText(id, txt) {
+    const el = document.getElementById(id);
+    if (el.textContent !== txt) {
+      el.textContent = txt;
+      el.classList.remove('flash');
+      void el.offsetWidth; // reflow
+      el.classList.add('flash');
+    }
+  }
+
+  function setBadge(id, cls, text) {
+    const el = document.getElementById(id);
+    el.className = 'badge ' + cls;
+    if (text !== undefined) el.textContent = text;
+  }
+
+  function renderMRRChart(startMRR, monthlyGrowthRate, target) {
+    const svg = document.getElementById('mrrChart');
+    const W = 600, H = 220, pad = { l: 50, r: 16, t: 16, b: 28 };
+    const months = 12;
+
+    // Project MRR
+    const data = [];
+    let cur = startMRR;
+    data.push(cur);
+    for (let i = 1; i <= months; i++) {
+      cur = cur * (1 + monthlyGrowthRate);
+      data.push(cur);
+    }
+
+    const maxY = Math.max(...data, target) * 1.1;
+    const minY = 0;
+    const xScale = i => pad.l + (i / months) * (W - pad.l - pad.r);
+    const yScale = v => pad.t + (1 - (v - minY) / (maxY - minY)) * (H - pad.t - pad.b);
+
+    let out = '';
+    // grid lines
+    for (let g = 0; g <= 4; g++) {
+      const y = pad.t + (g / 4) * (H - pad.t - pad.b);
+      const val = maxY * (1 - g/4);
+      out += `<line x1="${pad.l}" y1="${y}" x2="${W-pad.r}" y2="${y}" stroke="var(--grid)" stroke-width="1"/>`;
+      out += `<text x="${pad.l - 8}" y="${y+3}" text-anchor="end" font-family="JetBrains Mono" font-size="9" fill="var(--text-mute)">${fmtMoney(val)}</text>`;
+    }
+    // x labels
+    for (let i = 0; i <= months; i += 3) {
+      const x = xScale(i);
+      out += `<text x="${x}" y="${H - 10}" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="var(--text-mute)">M${i}</text>`;
+    }
+
+    // target line
+    if (target > 0 && target <= maxY) {
+      const ty = yScale(target);
+      out += `<line x1="${pad.l}" y1="${ty}" x2="${W-pad.r}" y2="${ty}" stroke="var(--text-mute)" stroke-width="1" stroke-dasharray="3 3"/>`;
+      out += `<text x="${W-pad.r}" y="${ty-4}" text-anchor="end" font-family="JetBrains Mono" font-size="9" fill="var(--text-dim)">break-even ${fmtMoney(target)}</text>`;
+    }
+
+    // area under curve
+    let pathD = `M ${xScale(0)} ${yScale(data[0])}`;
+    for (let i = 1; i < data.length; i++) {
+      pathD += ` L ${xScale(i)} ${yScale(data[i])}`;
+    }
+    const areaD = pathD + ` L ${xScale(months)} ${H - pad.b} L ${xScale(0)} ${H - pad.b} Z`;
+
+    out += `<defs><linearGradient id="mrrGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="var(--accent)" stop-opacity="0.25"/>
+      <stop offset="100%" stop-color="var(--accent)" stop-opacity="0"/>
+    </linearGradient></defs>`;
+    out += `<path d="${areaD}" fill="url(#mrrGrad)"/>`;
+    out += `<path d="${pathD}" fill="none" stroke="var(--accent)" stroke-width="1.75" stroke-linejoin="round"/>`;
+
+    // dots at endpoints
+    out += `<circle cx="${xScale(0)}" cy="${yScale(data[0])}" r="3" fill="var(--accent)"/>`;
+    out += `<circle cx="${xScale(months)}" cy="${yScale(data[months])}" r="3" fill="var(--accent)"/>`;
+
+    svg.innerHTML = out;
+  }
+
+  function renderCashChart(startCash, monthlyBurn) {
+    const svg = document.getElementById('cashChart');
+    const W = 600, H = 220, pad = { l: 50, r: 16, t: 16, b: 28 };
+    const months = 18;
+
+    // monthlyBurn is net: positive means growing cash, negative means burning
+    const data = [];
+    let c = startCash;
+    data.push(c);
+    for (let i = 1; i <= months; i++) {
+      c = c + monthlyBurn;
+      data.push(c);
+    }
+
+    const maxY = Math.max(...data, 0) * 1.1 || 1;
+    const minY = Math.min(...data, 0);
+    const range = maxY - minY || 1;
+
+    const xScale = i => pad.l + (i / months) * (W - pad.l - pad.r);
+    const yScale = v => pad.t + (1 - (v - minY) / range) * (H - pad.t - pad.b);
+
+    let out = '';
+    // grid
+    for (let g = 0; g <= 4; g++) {
+      const y = pad.t + (g / 4) * (H - pad.t - pad.b);
+      const val = maxY - (g/4) * range;
+      out += `<line x1="${pad.l}" y1="${y}" x2="${W-pad.r}" y2="${y}" stroke="var(--grid)" stroke-width="1"/>`;
+      out += `<text x="${pad.l - 8}" y="${y+3}" text-anchor="end" font-family="JetBrains Mono" font-size="9" fill="var(--text-mute)">${fmtMoney(val)}</text>`;
+    }
+    // x labels
+    for (let i = 0; i <= months; i += 3) {
+      const x = xScale(i);
+      out += `<text x="${x}" y="${H - 10}" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="var(--text-mute)">M${i}</text>`;
+    }
+
+    // zero line
+    if (minY < 0 && maxY > 0) {
+      const zy = yScale(0);
+      out += `<line x1="${pad.l}" y1="${zy}" x2="${W-pad.r}" y2="${zy}" stroke="var(--red)" stroke-width="1" stroke-dasharray="3 3" opacity="0.6"/>`;
+      out += `<text x="${W-pad.r}" y="${zy-4}" text-anchor="end" font-family="JetBrains Mono" font-size="9" fill="var(--red)">ZERO CASH</text>`;
+    }
+
+    // line
+    let pathD = `M ${xScale(0)} ${yScale(data[0])}`;
+    for (let i = 1; i < data.length; i++) {
+      pathD += ` L ${xScale(i)} ${yScale(data[i])}`;
+    }
+    const color = monthlyBurn >= 0 ? 'var(--green)' : 'var(--amber)';
+    out += `<path d="${pathD}" fill="none" stroke="${color}" stroke-width="1.75" stroke-linejoin="round"/>`;
+
+    // bars
+    for (let i = 0; i <= months; i += 1) {
+      const x = xScale(i);
+      const y = yScale(data[i]);
+      out += `<circle cx="${x}" cy="${y}" r="1.5" fill="${color}" opacity="0.7"/>`;
+    }
+
+    svg.innerHTML = out;
+  }
+
+  function renderGauge(score) {
+    const svg = document.getElementById('gauge');
+    const cx = 140, cy = 140, r = 90;
+    const startAngle = Math.PI; // 180°
+    const endAngle = 0;          // 0°
+    const maxScore = 80; // gauge max
+
+    function polar(angle, radius=r) {
+      return { x: cx + radius * Math.cos(angle), y: cy - radius * Math.sin(angle) };
+    }
+
+    // Background arc (180°)
+    const bgStart = polar(startAngle);
+    const bgEnd = polar(endAngle);
+    let out = '';
+
+    // segments: 0-20 bad, 20-40 warn, 40-80 good
+    const segments = [
+      { from: 0, to: 20, color: 'var(--red)', opacity: 0.35 },
+      { from: 20, to: 40, color: 'var(--amber)', opacity: 0.35 },
+      { from: 40, to: 80, color: 'var(--green)', opacity: 0.35 },
+    ];
+
+    segments.forEach(seg => {
+      const a1 = startAngle - (seg.from / maxScore) * Math.PI;
+      const a2 = startAngle - (seg.to / maxScore) * Math.PI;
+      const p1 = polar(a1);
+      const p2 = polar(a2);
+      out += `<path d="M ${p1.x} ${p1.y} A ${r} ${r} 0 0 1 ${p2.x} ${p2.y}" fill="none" stroke="${seg.color}" stroke-opacity="${seg.opacity}" stroke-width="18" stroke-linecap="butt"/>`;
+    });
+
+    // Needle
+    const clamped = Math.max(0, Math.min(maxScore, score));
+    const needleAngle = startAngle - (clamped / maxScore) * Math.PI;
+    const nEnd = polar(needleAngle, r - 4);
+    const nBase1 = polar(needleAngle + Math.PI/2, 4);
+    const nBase2 = polar(needleAngle - Math.PI/2, 4);
+    out += `<path d="M ${nBase1.x} ${nBase1.y} L ${nEnd.x} ${nEnd.y} L ${nBase2.x} ${nBase2.y} Z" fill="var(--accent)"/>`;
+    out += `<circle cx="${cx}" cy="${cy}" r="6" fill="var(--bg-elev)" stroke="var(--accent)" stroke-width="1.5"/>`;
+
+    // Tick marks
+    [0, 20, 40, 60, 80].forEach(t => {
+      const a = startAngle - (t / maxScore) * Math.PI;
+      const inner = polar(a, r - 14);
+      const outer = polar(a, r + 4);
+      out += `<line x1="${inner.x}" y1="${inner.y}" x2="${outer.x}" y2="${outer.y}" stroke="var(--text-mute)" stroke-width="1"/>`;
+      const label = polar(a, r + 16);
+      out += `<text x="${label.x}" y="${label.y}" text-anchor="middle" dominant-baseline="middle" font-family="JetBrains Mono" font-size="10" fill="var(--text-dim)">${t}</text>`;
+    });
+
+    // Center value
+    out += `<text x="${cx}" y="${cy + 40}" text-anchor="middle" font-family="Fraunces" font-size="32" fill="var(--text)">${fmtNum(score)}</text>`;
+    out += `<text x="${cx}" y="${cy + 58}" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="var(--text-mute)" letter-spacing="1.5">RULE OF 40</text>`;
+
+    svg.innerHTML = out;
+  }
+
+  function render() {
+    const r = calculate();
+    const m = state;
+
+    // Hero
+    setText('arr', fmtMoney(r.arr));
+    document.getElementById('arrMeta').textContent = 'From ' + fmtMoneyFull(m.mrr) + ' MRR';
+
+    setText('nrr', r.nrr.toFixed(1) + '%');
+    document.getElementById('nrrMeta').textContent = 'Gross retention ' + (r.churnDec * 100).toFixed(1) + '% churn';
+    // NRR benchmark coloring: median SaaS ~100-110%; >110% is best-in-class
+    const nrrEl = document.getElementById('nrr');
+    if (r.nrr >= 110) nrrEl.style.color = 'var(--green)';
+    else if (r.nrr >= 100) nrrEl.style.color = 'var(--text)';
+    else if (r.nrr >= 90) nrrEl.style.color = 'var(--amber)';
+    else nrrEl.style.color = 'var(--red)';
+
+    setText('rule40', fmtNum(r.rule40));
+    const rule40El = document.getElementById('rule40');
+    if (r.rule40 >= 40) rule40El.style.color = 'var(--accent)';
+    else if (r.rule40 >= 20) rule40El.style.color = 'var(--amber)';
+    else rule40El.style.color = 'var(--red)';
+    document.getElementById('rule40Meta').textContent = r.rule40 >= 40 ? 'Passes industry benchmark' : 'Below 40 threshold';
+
+    // Metric cards
+    setText('ltv', isFinite(r.ltv) ? fmtMoneyFull(r.ltv) : '—');
+
+    setText('burn', (r.netBurn >= 0 ? '+' : '') + fmtMoneyFull(r.netBurn));
+    const burnEl = document.getElementById('burn');
+    burnEl.style.color = r.netBurn >= 0 ? 'var(--green)' : 'var(--red)';
+    setBadge('burnBadge', r.netBurn >= 0 ? 'good' : 'bad', r.netBurn >= 0 ? 'profit' : 'burn');
+
+    if (!isFinite(r.runway)) {
+      setText('runway', '∞');
+      document.getElementById('runwayFoot').textContent = 'Profitable — cash growing';
+      setBadge('runwayBadge', 'good', 'healthy');
+    } else {
+      setText('runway', Math.floor(r.runway) + ' mo');
+      document.getElementById('runwayFoot').textContent = 'At burn of ' + fmtMoneyFull(Math.abs(r.netBurn)) + '/mo';
+      if (r.runway >= 18) setBadge('runwayBadge', 'good', 'healthy');
+      else if (r.runway >= 12) setBadge('runwayBadge', 'warn', 'caution');
+      else setBadge('runwayBadge', 'bad', 'critical');
+    }
+
+    if (r.breakeven === 0) {
+      setText('breakeven', 'Now');
+      document.getElementById('beFoot').textContent = 'Already profitable';
+      setBadge('beBadge', 'good', 'reached');
+    } else if (!isFinite(r.breakeven)) {
+      setText('breakeven', '—');
+      document.getElementById('beFoot').textContent = 'Not reachable at current pace';
+      setBadge('beBadge', 'bad', 'n/a');
+    } else {
+      setText('breakeven', Math.ceil(r.breakeven) + ' mo');
+      document.getElementById('beFoot').textContent = 'Target MRR: ' + fmtMoney(r.targetMRR);
+      setBadge('beBadge', r.breakeven <= 18 ? 'good' : 'warn', 'forecast');
+    }
+
+    // Rule of 40 detail
+    setText('growthRate', fmtPct(r.annualizedGrowth));
+    setText('fcfMargin', fmtPct(r.fcfMargin));
+    setText('combined', fmtNum(r.rule40));
+    document.getElementById('rule40Verdict').textContent = r.rule40 >= 40 ? 'Passing ✓' : r.rule40 >= 20 ? 'Below threshold' : 'Distressed';
+
+    // Charts
+    const monthlyGrowthRate = m.customers > 0 ? (r.netNewCust / m.customers) : 0;
+    renderMRRChart(m.mrr, monthlyGrowthRate, r.targetMRR);
+    renderCashChart(m.cash, r.netBurn);
+    renderGauge(r.rule40);
+  }
+
+  // Wire up events
+  ids.forEach(id => {
+    document.getElementById(id).addEventListener('input', render);
+  });
+
+  // Clock / tick
+  function tick() {
+    const d = new Date();
+    const hh = String(d.getHours()).padStart(2,'0');
+    const mm = String(d.getMinutes()).padStart(2,'0');
+    const ss = String(d.getSeconds()).padStart(2,'0');
+    document.getElementById('clock').textContent = 'LIVE ' + hh + ':' + mm + ':' + ss;
+  }
+  setInterval(tick, 1000);
+  tick();
+
+  render();
+})();
+</script>
+</body>
+</html>
